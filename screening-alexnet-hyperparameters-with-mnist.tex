@@ -1,0 +1,250 @@
+\RequirePackage[hyphens]{url}
+\documentclass[12pt]{article}
+\usepackage[margin=0.6in]{geometry}
+\usepackage{fancyhdr} 
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{color,soul}
+\usepackage{graphicx}
+%\usepackage{helvet}
+%\renewcommand{\familydefault}{\sfdefault}
+%\usepackage[hyphenbreaks]{breakurl}
+\usepackage{hyperref}
+\usepackage{endnotes}
+
+\renewcommand{\theendnote}{\Roman{endnote}} 
+\renewcommand{\notesname}{Sources}
+\makeatletter
+\renewcommand*{\enoteheading}{%
+  \section*{\notesname}%
+  \markboth{}{}%
+  \@afterindenttrue}
+\makeatother
+
+%\let\footnote=\endnote
+
+\pagestyle{fancy}
+
+\title{\textbf{Screening AlexNet Hyperparameters with MNIST \\ \vspace{12pt} \large{STATS 201A Project}}}
+\author{Adam Rohde \\ Ashley Chiu}
+\date{December 6, 2019}
+
+\renewcommand{\headrulewidth}{0pt}
+\setlength\footskip{12pt}
+%\lfoot{Rohde and Chiu}
+\cfoot{}
+\rfoot{Rohde and Chiu, Page \thepage}
+
+
+\begin{document}
+
+\maketitle
+%\centerline{\sc \large \textbf{Screening AlexNet Hyperparameters with MNIST}}
+%\vspace{.1pc}
+%\centerline{\sc Stats 201A Project}
+%\vspace{.1pc}
+%\centerline{\sc Adam Rohde and Ashley Chiu - December 6, 2019}
+\thispagestyle{empty}
+
+\clearpage
+\newpage
+
+\pagenumbering{arabic} 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+{\noindent \sc \textbf{MOTIVATION, BACKGROUND, and OBJECTIVE}}
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Convolutional Neural Networks and AlexNet}}
+\vspace{.1pc}
+
+The use of neural networks has become increasingly popular for many applications. This class of algorithms typically uses pre-labeled training data to learn patterns that are consistently correlated with given labels. Subsequently, the developed knowledge is used to properly classify new observations. 
+
+More specifically, Convolutional Neural Networks (CNN) have proven particularly effective in image recognition. As the name implies, such networks contain at least one convolutional layer\footnote{Convolutional layers derive their name from the convolution operation in mathematics and can be thought of as a “many-to-one” type mapping. The use of convolutional layers, thus, allows each layer to consider local information (i.e. dependencies such as neighboring pixels in an image).}\textsuperscript{,}\endnote{Alex Krizhevsky, Ilya Sutskever, and Geoffrey E. Hinton. 2012. ImageNet classification with deep convolutional neural networks. In Proceedings of the 25th International Conference on Neural Information Processing Systems - Volume 1 (NIPS'12), F. Pereira, C. J. C. Burges, L. Bottou, and K. Q. Weinberger (Eds.), Vol. 1. Curran Associates Inc., USA, 1097-1105. [AlexNet]}which reduce overall complexity, yielding simpler, more efficient, and easier to train models. While many architectures have been developed on the widely used training databases ImageNet and MNIST\endnote{https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d} , we choose to explore a seminal CNN architecture called AlexNet.
+
+A deep CNN developed at the ImageNet LSVRC-2012 contest, AlexNet significantly outperformed competitor models in classifying high-resolution images in the ImageNet database. In brief, AlexNet utilizes 5 convolutional layers and 3 fully connected layers with final softmax combined with a variety of ``new and unusual features [to] improve its performance."\endnote{AlexNet, P.1}
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Hyperparameters}}
+\vspace{.1pc}
+
+Neural networks require the tuning of a number of different hyperparameters, pre-set (i.e. before training) variables which determine the network structure and/or the way a network is trained.\endnote{https://arxiv.org/pdf/1705.08520.pdf}\textsuperscript{,}\endnote{ https://arxiv.org/pdf/1803.09820.pdf} Such hyperparameters include, but are not limited to, activation functions, learning rate, batch size, number of layers, regularization methods like dropout, number of epochs, and normalization. Optimizing hyperparameters can become a substantial task due to the sheer number of possibilities. Even more, hyperparameter settings drastically affect the performance of the network: researchers employ a number of techniques, such as random or grid searches, to find an optimal combination hyperparameter settings.
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Objective}}
+\vspace{.1pc}
+
+We deploy an experimental approach to hyperparameter tuning in the context of AlexNet. We investigate the “new and unusual features” embedded within AlexNet, amongst other hyperparameters known to influence accuracy \textit{to screen for the most important hyperparameters in an AlexNet-type CNN}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{.75pc}
+{\noindent \sc \textbf{EXPERIMENT}}
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Neural Network (``The Model")}}
+\vspace{.1pc}
+
+Using TensorFlow and the Keras \footnote{Keras provides a high-level interface with which to quickly develop and test neural networks.} functional API in Python, we built a version of the AlexNet CNN, which follows the guidance of the actual AlexNet authors and a few additional web sources.\endnote{https://towardsdatascience.com/image-classification-in-10-minutes-with-mnist-dataset-54c35b77a38d}\textsuperscript{,}\endnote{https://github.com/keras-team/keras/blob/master/examples/mnist\_cnn.py}\textsuperscript{,}\endnote{https://towardsdatascience.com/a-walkthrough-of-convolutional-neural-network-7f474f91d7bd}  
+Since our objective is to identify which hyperparameters are most important in AlexNet-type CNNs, we attempt to emulate the original structure of AlexNet fairly closely. 
+
+It is important to note, however, that the AlexNet-type CNN we utilized in our data collection varies from the original application of AlexNet on the ImageNet dataset. AlexNet utilized a highly efficient GPU implementation and took six days to train a single model – due to time and hardware limitations, this was not a feasible implementation for our screening experiment. Instead, we utilize a smaller AlexNet-type CNN with max 3 convolutional layers and 2 fully connected layers with a final softmax on the more manageable MNIST dataset, compared to the original 8 layers with a final softmax. As the MNIST dataset also involves images and is sufficiently large, we expect  this implementation will still allow us to collect and analyze useful data to reach our experiment’s objective. We also chose a practical, specific set of hyperparameters to tune and test for importance.  
+
+\vspace{.5pc}
+\newpage
+\noindent \textbf{\textit{Variables}}
+\footnote{The two levels listed for each variable correspond to -1 and 1 in our model matrix, respectively. See Appendix B.}
+\vspace{.1pc}
+ 
+As mentioned, the original AlexNet authors incorporated “new and unusual features” to improve model accuracy, including the ReLU activation function, normalization, dropout, and additional convolutional layers (a deeper network). The authors claim that without these features, their model’s performance significantly decreases. We test the importance of these and three other hyperparameters\endnote{https://arxiv.org/pdf/1803.09820.pdf}: 
+
+\begin{enumerate}
+  
+\item{\textit{Learning Rate ($A$)}: Refers to step size for the underlying gradient descent algorithm. The authors used an ``equal learning rate for all layers, which [was] adjusted manually throughout training. The heuristic [they] followed was to divide the learning rate by 10 when the validation error rate stopped improving with the current learning rate. The learning rate was initialized at 0.01 and reduced three times prior to termination."\endnote{AlexNet, p. 6} Learning rate is one of the most important tuning parameters in a neural network, as without a properly tuned learning rate, neural networks can often fail to converge. \endnote{https://arxiv.org/abs/1206.5533} \textit{We test learning rate settings of 0.01 and 0.0001 in our initial runs.}\footnote{Analysis of our initial experiment’s data indicated that factor settings for learning rate needed to be further tuned (similar to the AlexNet authors’ approach). Refer to Analysis portion for further detail and revised factor settings.}}
+
+\item{\textit{Number of Epochs ($B$)}: Refers to the number of times the entire training dataset is shown to the network while training. Intuitively, number of epochs are generally maximized, allowing for more opportunities to learn. However, too large a number can result in overfitting. \textit{We test our model with 2 and 10 epochs, based on prior domain knowledge and experience with the MNIST dataset.}}
+
+\item{\textit{Batch Size ($C$)}: Refers to the number of training examples given to the network at each pass before network parameter are updated. Similar to number of epochs, this is not a main tuning parameter for the authors; however, we know inherently that tuning batch size can improve model accuracy. \textit{For simplicity, we test batch sizes of 50 and 100.}}
+
+\item{\textit{Dropout ($D$)}: Forces a more robust model and refers to the dropping of neurons throughout the learning process. The authors claim that “without dropout, [the] network exhibits substantial overfitting. Dropout roughly doubles the number of iterations required to converge.”  \endnote{AlexNet, p. 6} \textit{We test the model with and without the dropout in the fully connected layers. }}
+
+\item{\textit{Activation Function ($E$)}: Refers to the introduction of nonlinearity. AlexNet was the first CNN to use the ReLU function in this capacity.\endnote{https://towardsdatascience.com/alexnet-the-architecture-that-challenged-cnns-e406d5297951} Until this introduction, the standard activation function was tanh. The authors “applied [ReLU] to the output of every convolutional and fully-connected layer” \endnote{AlexNet, p. 4} and claim that “deep convolutional neural networks with ReLUs train several times faster than their equivalents with tanh units.” \endnote{AlexNet, p. 3} \textit{We test the effects of ReLU and tanh activations. }}
+
+\item{\textit{Additional Convolutional Layer ($F$)}: Refers to additional depth, which the authors write “seems to be important…removing any convolutional layer…resulted in inferior performance.” \endnote{AlexNet, p. 2} \textit{As such, we tested the model with 2 and 3 convolutional layers. }}
+
+\item{\textit{Normalization ($G$)}: Rescales data by normalizing the output of each activation layer (subtracts batch mean and divides by batch standard deviation). The authors claim normalization reduced their error rates by 1-2$\%$.\endnote{AlexNet, p. 4} \textit{As such, we test the model without and with batch normalization. }}
+
+\end{enumerate}
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Recorded Response}}
+\vspace{.1pc}
+
+To evaluate the effect(s) of our variables, we recorded test accuracy.\footnote{Accuracy is a percentage calculated as the number of correctly identified digits over the total number of digits in the test data. }
+
+\vspace{.5pc}
+\newpage
+\noindent \textbf{\textit{Design}}
+\vspace{.1pc}
+
+It is clear from our discussion of variables, that we are employing a $2^k$ factorial design ($k = 7$), as each variable (factor) was tested at two levels. Due to computing limitations, we ultimately settled on a $2_{IV}^{7-2}$ randomized block design with 2 replicates, blocked by experimenter (student) with defining relationship $I = ABCDF = ABDGE = CEFG$ (Appendix B). Overall, the experiment contains 32 runs and 64 total observations. Since we are using a resolution IV design, none of our main effects are aliased with two-factor interactions ($me = 3fi$, $2fi = 2fi$). This is a simpler aliasing structure and should allow us to more clearly and easily see distinct results.\footnote{ Our model matrix can be found in Appendix B. The full alias structure can be found in source XVIII.}\textsuperscript{,}\endnote{Appendix A-18 in Douglas C. Montgomery. 2020. Design and Analysis of Experiments. 10th Edition, Wiley.}
+
+Note that the findings from our initial runs/experiment led us to run a follow-up experiment with tuned factor levels for learning rate. \textit{All design, randomization, and blocking principles discussed herein apply throughout the various iterations of our experiment.}
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Blocking and Randomization}}
+\vspace{.1pc}
+
+We utilize a randomized blocked design to reduce/control variability that could alter the reliability of our results (nuisance variables, e.g. version of Python, TensorFlow, machine processing). Each student conducted experiments and collected data independently using the same model, yielding two replicates. Run orders were randomized separately for each iteration\footnote{We were required to run two iterations of our experiment, as our initial factor settings for learning rate needed to be further tuned. As such, there were four total instances of data collection (two per block/researcher). } based on different random seeds. 
+ 
+\vspace{.5pc}
+\noindent \textbf{\textit{Data Collection Procedures}}
+\vspace{.1pc}
+
+We executed our AlexNet CNN Python scripts\footnote{See Appendix C.} overnight on the same dates. After each run, test accuracy and training time data were automatically written to CSV via Python on our respective machines. Each script execution took approximately 3 hours. 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{.75pc}
+{\noindent \sc \textbf{ANALYSIS}}
+
+\vspace{.5pc}
+{\noindent \sc \textbf{Part I - Initial Experiment}}
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Exploratory Data Analysis}}
+\vspace{.1pc}
+
+We read our collective data into R, first performing initial exploratory data analysis by constructing boxplots of accuracy as a function of each factor (Appendix A, Fig. 1). From these basic plots, we saw learning rate ($A$) to be the most obvious, significant factor influencing test accuracy. In this preliminary stage, we also see that normalization ($G$) may affect accuracy. Interestingly, we also see a large amount of variation between blocks. Our half normal plot of main effects verifies these results (Appendix A, Fig. 2). Lastly, our data appears to have some significant outliers and influential points. 
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Main Effects Model}}
+\vspace{.1pc}
+
+We proceeded by running an initial linear model on only the main effects, confirming that Learning Rate ($A$) is significant at $\alpha = 5\%$. While block and normalization ($G$) appeared to be significant factors in our exploratory analysis, the main effects model does not necessarily support these results (Appendix A, Fig. 3). Further, a quick residual analysis of this main effects model showed poor results (Appendix A, Fig. 4), as 1) the data do not appear to satisfy the condition of homoscedasticity and 2) the Normal Q-Q plot, while showing no obvious patterns, re-highlighted a potential issue with outliers.
+
+\vspace{.5pc}
+\noindent \textbf{\textit{StepAIC – ME + Two-Factor Interactions}}
+\vspace{.1pc}
+
+To follow, based on the poor residual plots, we concluded that we should incorporate some interaction effects to improve the model. We run both forward and backward step-wise regression capturing all main effects and their two-factor interactions (we assume that three-factor and higher-level interactions are negligible). We do this to identify the best model that incorporates two-factor interactions without overfitting. Note, in our resolution IV design, no main effects are aliased with 2-factor interactions.
+
+StepAIC created a final model with $A$, $B:D$, $C:E$, $C:F$, and $C:G$ significant at $\alpha = 10\%$ (Appendix A, Fig. 6). Block was not significant at this $\alpha$, but appears to be significant in the half normal plot (Appendix A, Fig. 5). Based on these results, we build a final model (Appendix A, Fig. 7)
+
+$$Accuracy \sim A + B + C + D + E + F + G + B:D + C:E + C:F + C:G + Block$$
+
+$R^2$ and Adjusted $R^2$ are not particularly high in this model at $0.4389$ and $0.3069$, respectively. However, as this is a screening experiment to determine which hyperparameters are most important in a neural network, we are not overly concerned with fit/prediction capabilities. We proceeded by analyzing the residuals of this “final” model, which still showed poor results (Appendix A, Fig. 8). Specifically, the plot of residuals vs. fitted values shows a distinct linear relationship, with a negative slope. In addition, the Normal Q-Q plot shows a slightly s-shaped curve with tails. After seeing these results in the residual analysis, we attempted to transform the response variable, accuracy. However, no transformation, including log, sqrt, or power, appeared to improve the residuals\footnote{R output and plots from this exercise intentionally omitted.}. 
+
+
+\vspace{.5pc}
+\noindent \textbf{\textit{Outliers}}
+\vspace{.1pc}
+
+Upon closer inspection of the pattern in the plot of residuals vs. fitted values (Appendix A, Fig. 8), we saw that most of the unusual variability was clustered towards the lower accuracy rates (fitted values of approx. $0.5$ to $0.8$) – based on our domain knowledge of neural networks, we developed a suspicion that runs with the higher learning rate ($A = -1$) might be exhibiting a convergence issue.\footnote{Too large a step size can cause the gradient algorithm to consistently miss the local optima, causing training to diverge.}\textsuperscript{,}\endnote{https://arxiv.org/abs/1206.5533}
+ 
+To address this suspicion, we removed outliers from our dataset.\footnote{Outliers were defined as observations with accuracy greater than or less than $1.5\pm IQR$.} In reviewing the outlier dataset, we saw that all of the observations were indeed run with the higher learning rate of $0.01$, confirming our initial suspicion. Following the removal of these outliers, we re-ran the entire analysis discussed above (Appendix A, Fig. 9-14). This time, our StepAIC model showed almost all main effects and two-factor interactions to be significant at $\alpha = 5\%$ (Appendix A, Fig. 10-11), learning rate ($A$) still being the most significant. Block was no longer significant.
+
+Once again, we reviewed the residual plots (Appendix A, Fig.12) and saw much improvement, as there was no longer a negative sloping line in the plot of residuals vs. fitted values. However, the residuals still do not satisfy the condition of homoscedasticity. In addition, the s-shaped pattern still remained on the Normal Q-Q plot. Again, we tried a log-transform on the response, which improved the Normal Q-Q plot. Still, we see some minor deviations at the tails (Appendix A, Fig. 13-14). 
+
+We acknowledge that we cannot reasonably rely on the subset data, as we have no way of knowing whether we truly only removed noise and not signal. As such, \textit{based on these initial findings and residual analysis, we ran a follow-up experiment.}
+
+
+\vspace{.5pc}
+{\noindent \sc \textbf{Part II - Follow-Up Experiment (Learning Rate factor settings adjusted) }}
+
+We re-ran our entire experiment with better-tuned factor settings on learning rate (reduced the lower factor setting by a factor of $10$), a similar methodology employed by the authors of AlexNet ($A = -1$ corresponds to learning rate $= 0.001$ and $A= +1$ corresponds to learning rate $= 0.0001$)\footnote{See Appendix B.}. 
+
+In this second iteration, we continued with the same analysis and re-ran a main effects model and StepAIC with all main effects and two-factor interactions (note that we maintained the log transform on our response variable, per our first round of analysis). Our new main effects model showed that learning rate, again, was significant, along with Number of Epochs ($B$) (Appendix A, Fig. 15-16). Still, we believe that important two-factor interactions are not included in this model, so consistent with our initial experiment, we run a StepAIC (Appendix A, Fig. 17-18). The results showed that almost all main effects (except the additional convolutional layer factor) and many two-factor interactions were significant at $\alpha = 5\%$.\footnote{Interaction plots have been excluded from this report due to the large number of plots. } This time, when performing the residual analysis (Appendix A, Fig. 19), we noticed no obvious pattern in the plot of residuals vs. fitted values. Further, the data did not benefit from any additional transformations.  The normal Q-Q plot also shows data mostly on a straight line, with minor deviations at the tails. We acknowledge that there are leverage/influential points in the data, but do not feel we have majorly violated the residual assumptions of homoscedasticity and normally distributed residuals. As such, the final model through StepAIC is as follows: 
+
+$$
+\begin{aligned}
+log(Accuracy) \sim &A + B + C + D + E + F + G + \\
+&A:B +  A:C + A:D + A:E + A:F + A:G + \\
+&B:C + B:D + B:G + C:D + C:E + C:G + D:E + D:F + D:G 
+\end{aligned}
+$$
+
+See Appendix A, Fig. 18 for the full results of our final model. This includes the relative significances of the various factors. Based on the final two levels for each factor in our experiment, the optimal settings for this particular implementation of the AlexNet CNN would thus be: 
+
+$$A = -1, B = 1, C = -1, D = -1, E =- 1, F = -1, G = -1$$
+
+In terms of actuals variables: 
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{FinalModelActualVars.jpg}
+\end{figure}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{.75pc}
+{\noindent \sc \textbf{CONCLUSION AND POSSIBLE FUTURE WORK}}
+\vspace{.1pc}
+
+Our experiments support several of the AlexNet authors’ findings on important factors for improved image recognition. The clearest result is that learning rate is a crucial hyperparameter that requires continuous refinement throughout the training process: a poor choice of learning rate can outweigh the positive effect(s) of other well-chosen hyperparameters. In addition, we confirmed that longer training time (in terms of epochs) and ReLU activations tend to improve performance. 
+
+However, our results also contradict some of the authors’ conclusions. First, adding an additional convolutional layer was not a significant factor. Further, dropout and normalization were actually found to lead to poorer performance within the context of our experiment. We suspect this may be because our CNN implementation used the smaller MNIST dataset, and these particular features (focused on overfitting) may not have been as useful for this less complex dataset. We also see that there are several important interaction effects that have significant consequences for performance. Some such interactions might even be more important than the main effects of the factors themselves (e.g., the interaction between dropout and activation function might be more influential for accuracy than the main effect for either of these factors individually). This suggests that a great deal of care must be taken in the selection of hyperparameter settings in the development of CNNs.
+
+Further investigation could test these hypotheses, but even more, we might test whether these same factors have significant effects on training time, as practitioners constantly seek a balance of accuracy and training time (i.e. overall efficiency). It might be that long training time generally improves accuracy, as we observed here, but that real-world constraints limit this luxury. Similarly, ReLU activation functions might prove to be more important than other factors within a broader context of accuracy and training time. It seems clear that the ultimate key to achieving a network with optimal performance is balancing all of these important hyperparameters in the context of the complexity of the data at hand.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\begingroup
+\parindent 0pt
+\parskip 2ex
+\def\enotesize{\normalsize}
+\theendnotes
+\endgroup
+
+
+
+
+
+
+\end{document}
