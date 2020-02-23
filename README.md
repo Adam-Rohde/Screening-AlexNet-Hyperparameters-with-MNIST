@@ -12,6 +12,8 @@ Files:
 
 * Report: screening-alexnet-hyperparameters-with-mnist.pdf; screening-alexnet-hyperparameters-with-mnist.tex
 
-* Python Code: AlexNetExperiment.py
+* Python Code: AlexNetExperiment.py (Note only one version of experiment code is provided here.)
 
 * R Code: AlexNetAnalysis.R
+
+* Experiment Data: AlexNetExperimentData_Iter1_1.csv; AlexNetExperimentData_Iter1_2.csv; AlexNetExperimentData_Iter2_1.csv; AlexNetExperimentData_Iter2_2.csv (Note that each author generated half the runs for each iteration.)
