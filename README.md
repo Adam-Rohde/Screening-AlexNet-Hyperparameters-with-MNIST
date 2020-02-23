@@ -10,7 +10,7 @@ Dataset: MNIST
 
 Files:
 
-* Report: screening-alexnet-hyperparameters-with-mnist.pdf
+* Report: screening-alexnet-hyperparameters-with-mnist.pdf; screening-alexnet-hyperparameters-with-mnist.tex
 
 * Python Code: AlexNetExperiment.py
 
